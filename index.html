@@ -192,6 +192,45 @@
         border-radius: 8px; padding: 10px 12px; margin-bottom: 12px;
       }
       #supportBox.show { display: block; }
+      /* 模式区（本地波形引擎） */
+      .preset-row { display: flex; gap: 8px; flex-wrap: wrap; }
+      .preset-row button { flex: 1; min-height: 44px; font-size: 14px; font-weight: 600; }
+      .preset-row button small { display: block; font-size: 11px; font-weight: 400; color: var(--ink-faint); margin-top: 1px; }
+      .mode-note { font-size: 12px; color: var(--ink-soft); margin: 8px 0 0; line-height: 1.5; }
+      .mode-block { padding: 12px 0 4px; border-bottom: 1px solid var(--line); }
+      .mode-block:last-of-type { border-bottom: none; }
+      .mode-head { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+      .mode-name { font-size: 14.5px; font-weight: 600; }
+      .mode-desc { font-size: 12px; color: var(--ink-faint); }
+      .chips { display: flex; gap: 6px; flex-wrap: wrap; margin: 8px 0 10px; }
+      .chip { min-height: 32px; padding: 3px 12px; font-size: 12.5px; border-radius: 999px; }
+      .chip[aria-pressed="true"] { background: var(--grape-soft); border-color: var(--grape); color: var(--grape-deep); font-weight: 700; }
+      .chip-elec[aria-pressed="true"] { background: var(--elec-soft); border-color: var(--elec); color: var(--elec-deep); }
+      .mode-fields { display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; }
+      .mode-fields label { font-size: 12px; color: var(--ink-soft); display: flex; flex-direction: column; gap: 3px; }
+      .mode-fields input[type="number"] {
+        width: 78px; font: inherit; font-size: 14px; color: var(--ink);
+        padding: 7px 8px; min-height: 38px;
+        border: 1px solid var(--line); border-radius: 6px; background: var(--surface);
+      }
+      .wave-status { font-size: 12.5px; color: var(--ink-soft); margin-top: 10px; min-height: 20px; }
+      .btn-stopmodes { width: 100%; margin-top: 10px; }
+      /* 远程控制开关 */
+      .remote-row { display: flex; align-items: center; gap: 10px; }
+      .remote-label { font-size: 14.5px; font-weight: 600; }
+      .switch {
+        width: 52px; height: 30px; min-height: 30px; padding: 0; flex: none;
+        border-radius: 999px; background: var(--surface-2); border: 1px solid var(--line);
+        position: relative;
+      }
+      .switch .knob {
+        position: absolute; top: 3px; left: 3px; width: 22px; height: 22px;
+        border-radius: 50%; background: var(--ink-faint);
+        transition: left .15s ease, background .15s ease;
+      }
+      .switch[aria-checked="true"] { background: var(--grape); border-color: var(--grape); }
+      .switch[aria-checked="true"] .knob { left: 25px; background: #fff; }
+      @media (prefers-reduced-motion: reduce) { .switch .knob { transition: none; } }
       .steps { font-size: 13px; color: var(--ink-soft); margin: 0; padding-left: 20px; }
       .steps li { margin-bottom: 3px; }
       .foot { font-size: 12px; color: var(--ink-faint); margin-top: 4px; }
@@ -286,6 +325,80 @@
         </div>
       </section>
 
+      <section aria-label="模式">
+        <h2>模式（本地波形 · 预设）</h2>
+        <div class="preset-row">
+          <button type="button" data-preset data-s="20" data-v="15" data-e="0">轻柔<small>吮吸 20 · 震动 15 · 电流 0</small></button>
+          <button type="button" data-preset data-s="50" data-v="40" data-e="10">中档<small>吮吸 50 · 震动 40 · 电流 10</small></button>
+          <button type="button" data-preset data-s="80" data-v="70" data-e="30">狂野<small>吮吸 80 · 震动 70 · 电流 30</small></button>
+        </div>
+        <p class="mode-note">预设点一下同时设定三通道档位（电流照样封顶 40）；要停就点上方「全部停止」。</p>
+
+        <div class="mode-block" data-mode="wave">
+          <div class="mode-head">
+            <span class="mode-name">波浪</span>
+            <span class="mode-desc">正弦起伏 · 周期 4 秒 · 跨度 45</span>
+          </div>
+          <div class="chips" data-chips>
+            <button type="button" class="chip" data-ch="suction" aria-pressed="true">吮吸</button>
+            <button type="button" class="chip" data-ch="vibrate" aria-pressed="false">震动</button>
+            <button type="button" class="chip chip-elec" data-ch="electric" aria-pressed="false">电流（≤40）</button>
+          </div>
+          <div class="mode-fields">
+            <label>目标强度<input type="number" data-peak min="0" max="100" step="1" value="60" inputmode="numeric" /></label>
+            <label>持续秒数（0 = 一直）<input type="number" data-dur min="0" step="1" value="60" inputmode="numeric" /></label>
+            <button type="button" data-start>开始波浪</button>
+          </div>
+        </div>
+
+        <div class="mode-block" data-mode="pulse">
+          <div class="mode-head">
+            <span class="mode-name">脉冲</span>
+            <span class="mode-desc">一阵一阵 · 周期 1.6 秒 · 跨度 45</span>
+          </div>
+          <div class="chips" data-chips>
+            <button type="button" class="chip" data-ch="suction" aria-pressed="true">吮吸</button>
+            <button type="button" class="chip" data-ch="vibrate" aria-pressed="false">震动</button>
+            <button type="button" class="chip chip-elec" data-ch="electric" aria-pressed="false">电流（≤40）</button>
+          </div>
+          <div class="mode-fields">
+            <label>目标强度<input type="number" data-peak min="0" max="100" step="1" value="60" inputmode="numeric" /></label>
+            <label>持续秒数（0 = 一直）<input type="number" data-dur min="0" step="1" value="60" inputmode="numeric" /></label>
+            <button type="button" data-start>开始脉冲</button>
+          </div>
+        </div>
+
+        <div class="mode-block" data-mode="climb">
+          <div class="mode-head">
+            <span class="mode-name">攀升</span>
+            <span class="mode-desc">从 5 慢慢爬到上限 · 周期 8 秒</span>
+          </div>
+          <div class="chips" data-chips>
+            <button type="button" class="chip" data-ch="suction" aria-pressed="true">吮吸</button>
+            <button type="button" class="chip" data-ch="vibrate" aria-pressed="false">震动</button>
+            <button type="button" class="chip chip-elec" data-ch="electric" aria-pressed="false">电流（≤40）</button>
+          </div>
+          <div class="mode-fields">
+            <label>上限强度<input type="number" data-peak min="0" max="100" step="1" value="70" inputmode="numeric" /></label>
+            <label>持续秒数（0 = 一直）<input type="number" data-dur min="0" step="1" value="60" inputmode="numeric" /></label>
+            <button type="button" data-start>开始攀升</button>
+          </div>
+        </div>
+
+        <button type="button" class="btn-stopmodes" id="btnStopModes">停止模式</button>
+        <div class="wave-status" id="waveStatus">当前没有运行中的波形。</div>
+        <p class="mode-note">波形在本页本地生成、每 250 毫秒走原来的单帧通道发送；手动拉滑杆会取消该通道上的波形，「全部停止」会停掉全部波形。</p>
+      </section>
+
+      <section aria-label="远程控制">
+        <h2>远程控制</h2>
+        <div class="remote-row">
+          <button type="button" class="switch" id="remoteSwitch" role="switch" aria-checked="false" aria-label="接受远程控制"><span class="knob"></span></button>
+          <span class="remote-label">接受远程控制</span>
+        </div>
+        <p class="mode-note">默认关闭，关着时本页不订阅任何东西。打开后，本页才会订阅 Dorian 的签名指令通道（每条指令都经 Ed25519 验签，验不过、过期或序号不对一律忽略）。你随时点「全部停止」或关掉这个开关，远程立刻失效；远程开着时连续 90 秒没有有效指令，三通道会自动归零。</p>
+      </section>
+
       <section aria-label="状态">
         <h2>状态</h2>
         <div class="kv">
@@ -295,6 +408,22 @@
         <div class="kv">
           <div class="kv-label">设备回应（通知）</div>
           <div class="kv-val empty" id="lastRx">尚未收到</div>
+        </div>
+        <div class="kv">
+          <div class="kv-label">中继节点（远程）</div>
+          <div class="kv-val empty" id="remoteNode">—</div>
+        </div>
+        <div class="kv">
+          <div class="kv-label">远程状态</div>
+          <div class="kv-val empty" id="remoteState">未开启</div>
+        </div>
+        <div class="kv">
+          <div class="kv-label">上一条有效指令</div>
+          <div class="kv-val empty" id="remoteLast">尚未收到</div>
+        </div>
+        <div class="kv">
+          <div class="kv-label">已忽略无效 / 过期指令</div>
+          <div class="kv-val empty" id="remoteIgnored">0 条</div>
         </div>
         <div class="kv">
           <div class="kv-label">保活</div>
@@ -444,6 +573,7 @@
           }
         }
         function setChannel(ch, v, immediate) {
+          cancelWave(ch); /* 手动（或远程档位指令）直接设档位时，取消该通道上的波形 */
           v = clampChan(ch, v);
           state[ch] = v;
           syncSlider(ch);
@@ -507,6 +637,8 @@
           releaseWakeLock();
           if (notifyChar) { try { notifyChar.removeEventListener('characteristicvaluechanged', onNotify); } catch (e) {} }
           device = null; server = null; writeChar = null; notifyChar = null;
+          cancelAllWaves(false);
+          disableRemote();
           resetUIState();
           setConnUI('', '未连接（已断开）', '');
           keepAliveEl.textContent = '已断开，保活停止。重新连接后恢复。';
@@ -577,8 +709,10 @@
           if (!device) onDisconnected();
         }
 
-        /* 全部停止：三通道全发 0 并归零，电流照样包含在内，一键生效 */
-        function stopAll(zeroUI) {
+        /* 三通道归零：停掉全部波形并全发 0（电流包含在内）。
+           不碰远程开关，供死手开关等内部场景复用。 */
+        function zeroAllChannels() {
+          cancelAllWaves(false);
           state.suction = 0; state.vibrate = 0; state.electric = 0;
           syncSlider('suction'); syncSlider('vibrate'); syncSlider('electric');
           if (connected) {
@@ -589,6 +723,11 @@
             sendChannel('vibrate', 0);
             sendChannel('electric', 0);
           }
+        }
+        /* 全部停止：归零之外，还会停掉全部波形并关掉远程开关，本地永远优先 */
+        function stopAll(zeroUI) {
+          zeroAllChannels();
+          disableRemote();
         }
 
         /* ===== 事件绑定 ===== */
@@ -612,6 +751,352 @@
             }
           })(quickBoxes[q]);
         }
+
+        /* ===== 模式：本地波形引擎 =====
+           协议没有内置模式，官方 App 的模式是 App 侧按时间编排强度；
+           这里在本页本地按 250ms 步进生成强度序列，仍走 sendChannel 单帧路径。
+           波形算出的值先经 clampChan 夹紧再发，电流绝不超过 ELEC_MAX=40。 */
+        var WAVE_DEFS = {
+          wave:  { label: '波浪', period: 4000, span: 45 },
+          pulse: { label: '脉冲', period: 1600, span: 45 },
+          climb: { label: '攀升', period: 8000, span: 0 }
+        };
+        var waves = {}; /* ch -> { type, period, span, peak, t0, durMs } */
+        var waveTimer = null;
+        var waveStatusEl = $('waveStatus');
+
+        function waveValue(w, elapsed) {
+          var phase = (elapsed % w.period) / w.period;
+          if (w.type === 'wave') {
+            var center = w.peak - w.span / 2;
+            return center + (w.span / 2) * Math.sin(2 * Math.PI * phase - Math.PI / 2);
+          }
+          if (w.type === 'pulse') {
+            return phase < 0.5 ? w.peak : Math.max(0, w.peak - w.span);
+          }
+          return 5 + (w.peak - 5) * phase; /* climb：从 5 斜坡升到上限 */
+        }
+        function applyWaveValue(ch, v) {
+          v = clampChan(ch, v);
+          state[ch] = v;
+          syncSlider(ch);
+          if (connected) sendChannel(ch, v);
+        }
+        function updateWaveStatus() {
+          var parts = [];
+          var now = Date.now();
+          ['suction', 'vibrate', 'electric'].forEach(function (ch) {
+            var w = waves[ch];
+            if (!w) return;
+            var txt = WAVE_DEFS[w.type].label + ' → ' + CHAN_LABEL[ch];
+            if (isFinite(w.durMs)) {
+              var left = Math.max(0, Math.ceil((w.durMs - (now - w.t0)) / 1000));
+              txt += '（剩 ' + left + ' 秒）';
+            } else {
+              txt += '（持续中）';
+            }
+            parts.push(txt);
+          });
+          waveStatusEl.textContent = parts.length ? '运行中：' + parts.join(' · ') : '当前没有运行中的波形。';
+        }
+        function ensureWaveTimer() {
+          if (!waveTimer) waveTimer = setInterval(waveTick, 250);
+        }
+        function maybeStopWaveTimer() {
+          if (waveTimer && !Object.keys(waves).length) { clearInterval(waveTimer); waveTimer = null; }
+        }
+        function waveTick() {
+          var now = Date.now();
+          ['suction', 'vibrate', 'electric'].forEach(function (ch) {
+            var w = waves[ch];
+            if (!w) return;
+            var elapsed = now - w.t0;
+            if (elapsed >= w.durMs) {
+              delete waves[ch];
+              applyWaveValue(ch, 0); /* 到点自动归零停 */
+              return;
+            }
+            applyWaveValue(ch, waveValue(w, elapsed));
+          });
+          maybeStopWaveTimer();
+          updateWaveStatus();
+        }
+        function startWave(ch, opts) {
+          var def = WAVE_DEFS[opts.type];
+          if (!def) return;
+          waves[ch] = {
+            type: opts.type,
+            period: opts.period > 0 ? opts.period : def.period,
+            span: typeof opts.span === 'number' ? opts.span : def.span,
+            peak: opts.peak,
+            t0: Date.now(),
+            durMs: opts.durMs > 0 ? opts.durMs : Infinity
+          };
+          ensureWaveTimer();
+          applyWaveValue(ch, waveValue(waves[ch], 0));
+          updateWaveStatus();
+        }
+        function cancelWave(ch) {
+          if (waves[ch]) { delete waves[ch]; maybeStopWaveTimer(); updateWaveStatus(); }
+        }
+        function cancelAllWaves(zero) {
+          var had = Object.keys(waves);
+          waves = {};
+          maybeStopWaveTimer();
+          if (zero) had.forEach(function (ch) { applyWaveValue(ch, 0); });
+          updateWaveStatus();
+        }
+
+        /* 模式区 UI：通道多选 chips + 目标强度 + 持续秒数 + 开始 */
+        function modeBlockEl(type) { return document.querySelector('.mode-block[data-mode="' + type + '"]'); }
+        function modePeak(type) {
+          var el = modeBlockEl(type).querySelector('[data-peak]');
+          var v = parseInt(el.value, 10);
+          return isNaN(v) ? 60 : Math.max(0, Math.min(100, v));
+        }
+        function modeDurSec(type) {
+          var el = modeBlockEl(type).querySelector('[data-dur]');
+          var v = parseInt(el.value, 10);
+          return isNaN(v) || v < 0 ? 0 : v;
+        }
+        (function wireModeBlocks() {
+          var blocks = document.querySelectorAll('.mode-block');
+          for (var i = 0; i < blocks.length; i++) {
+            (function (block) {
+              var type = block.getAttribute('data-mode');
+              var chips = block.querySelectorAll('.chip');
+              for (var c = 0; c < chips.length; c++) {
+                (function (chip) {
+                  chip.addEventListener('click', function () {
+                    chip.setAttribute('aria-pressed', chip.getAttribute('aria-pressed') === 'true' ? 'false' : 'true');
+                  });
+                })(chips[c]);
+              }
+              block.querySelector('[data-start]').addEventListener('click', function () {
+                var selected = [];
+                var pressed = block.querySelectorAll('.chip[aria-pressed="true"]');
+                for (var k = 0; k < pressed.length; k++) selected.push(pressed[k].getAttribute('data-ch'));
+                if (!selected.length) {
+                  waveStatusEl.textContent = '先在上面选至少一个通道，再点开始。';
+                  return;
+                }
+                var peak = modePeak(type);
+                var durMs = modeDurSec(type) * 1000;
+                selected.forEach(function (ch) {
+                  startWave(ch, { type: type, peak: peak, durMs: durMs });
+                });
+              });
+            })(blocks[i]);
+          }
+          $('btnStopModes').addEventListener('click', function () { cancelAllWaves(true); });
+          /* 预设组合：同时设定三通道档位（走现有夹紧），setChannel 会顺带取消对应波形 */
+          var presets = document.querySelectorAll('[data-preset]');
+          for (var p = 0; p < presets.length; p++) {
+            (function (b) {
+              b.addEventListener('click', function () {
+                setChannel('suction', parseInt(b.getAttribute('data-s'), 10), true);
+                setChannel('vibrate', parseInt(b.getAttribute('data-v'), 10), true);
+                setChannel('electric', parseInt(b.getAttribute('data-e'), 10), true);
+              });
+            })(presets[p]);
+          }
+        })();
+
+        /* ===== 远程控制：Dorian 的签名通道（ntfy 中继） =====
+           节点为构建时实测结果：ntfy.envs.net 的 /json 流式订阅带
+           Access-Control-Allow-Origin: *，浏览器可直接跨域订阅，故选用它
+           （ntfy.sh 本次实测未通过）。关闭开关时不发起任何订阅请求。 */
+        var REMOTE_NODE = 'https://ntfy.envs.net';
+        var REMOTE_TOPIC = 'relay-2d45a836fc3a10065ee2';
+        var REMOTE_PUBKEY_B64 = 'MCowBQYDK2VwAyEA2ad/ZgJ2qKFTJ0TvSkzMzqTUtDAYhU4F9avz2qcEVRY=';
+        var remoteSwitch = $('remoteSwitch');
+        var remoteNodeEl = $('remoteNode'), remoteStateEl = $('remoteState');
+        var remoteLastEl = $('remoteLast'), remoteIgnoredEl = $('remoteIgnored');
+        var remoteOn = false, remoteAbort = null, remoteKey = null, remoteKeyFailed = false;
+        var remoteSince = 0, lastSeq = 0, executedSeqs = {};
+        var ignoredCount = 0, lastValidAt = 0, deadmanFired = false, deadmanTimer = null;
+        var cmdChain = Promise.resolve();
+
+        remoteNodeEl.textContent = REMOTE_NODE.replace('https://', '') + ' · 主题 ' + REMOTE_TOPIC;
+        remoteNodeEl.classList.remove('empty');
+
+        function setRemoteState(txt) {
+          remoteStateEl.textContent = txt;
+          remoteStateEl.classList.remove('empty');
+        }
+        function bumpIgnored() {
+          ignoredCount++;
+          remoteIgnoredEl.textContent = ignoredCount + ' 条';
+          remoteIgnoredEl.classList.remove('empty');
+        }
+        function b64ToBytes(b64) {
+          var bin = atob(b64);
+          var out = new Uint8Array(bin.length);
+          for (var i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+          return out;
+        }
+        function b64urlToText(s) {
+          s = s.replace(/-/g, '+').replace(/_/g, '/');
+          while (s.length % 4) s += '=';
+          var bytes = b64ToBytes(s);
+          return new TextDecoder('utf-8').decode(bytes);
+        }
+        function ensureRemoteKey() {
+          if (remoteKey || remoteKeyFailed || !(window.crypto && crypto.subtle)) {
+            if (!(window.crypto && crypto.subtle)) remoteKeyFailed = true;
+            return;
+          }
+          crypto.subtle.importKey('spki', b64ToBytes(REMOTE_PUBKEY_B64), { name: 'Ed25519' }, false, ['verify'])
+            .then(function (k) { remoteKey = k; })
+            .catch(function () {
+              remoteKeyFailed = true;
+              if (remoteOn) setRemoteState('当前浏览器不支持 Ed25519 验签，远程指令不会被执行。');
+            });
+        }
+        function setRemoteLast(summary) {
+          remoteLastEl.textContent = new Date().toLocaleTimeString('zh-CN', { hour12: false }) + ' · ' + summary;
+          remoteLastEl.classList.remove('empty');
+        }
+
+        /* 执行一条已验签的命令：字段全可选；电流经 clampChan 硬顶 40 */
+        function executeCmd(cmd) {
+          var parts = [];
+          if (cmd.stop === true) {
+            setRemoteLast('全部停止（远程开关已自动关闭）');
+            stopAll(true);
+            return;
+          }
+          if (typeof cmd.suction === 'number') {
+            setChannel('suction', cmd.suction, true);
+            parts.push('吮吸 ' + state.suction);
+          }
+          if (typeof cmd.vibration === 'number') {
+            setChannel('vibrate', cmd.vibration, true);
+            parts.push('震动 ' + state.vibrate);
+          }
+          if (typeof cmd.electric === 'number') {
+            var clampedNote = cmd.electric > ELEC_MAX ? '（已夹紧到 40）' : '';
+            setChannel('electric', cmd.electric, true);
+            parts.push('电流 ' + state.electric + clampedNote);
+          }
+          if (cmd.wave && typeof cmd.wave === 'object') {
+            var w = cmd.wave;
+            var chMap = { suction: 'suction', vibration: 'vibrate', electric: 'electric' };
+            var wch = chMap[w.ch];
+            if (wch && WAVE_DEFS[w.type]) {
+              var peak = modePeak(w.type);
+              if (peak <= 0) peak = wch === 'electric' ? 25 : 60;
+              var durSec = typeof w.dur === 'number' ? w.dur : modeDurSec(w.type);
+              startWave(wch, {
+                type: w.type,
+                period: typeof w.period === 'number' ? w.period : undefined,
+                span: typeof w.span === 'number' ? w.span : undefined,
+                peak: peak,
+                durMs: durSec * 1000
+              });
+              parts.push(WAVE_DEFS[w.type].label + ' → ' + CHAN_LABEL[wch]);
+            }
+          }
+          if (parts.length) setRemoteLast(parts.join(' · '));
+        }
+
+        /* 验签 + 时效 + 序号，三条都满足才执行，否则计数忽略 */
+        function handleCommand(raw) {
+          var msg;
+          try { msg = JSON.parse(raw); } catch (e) { bumpIgnored(); return Promise.resolve(); }
+          if (!msg || msg.v !== 1 || typeof msg.seq !== 'number' || typeof msg.exp !== 'number' ||
+              typeof msg.payload !== 'string' || typeof msg.sig !== 'string') {
+            bumpIgnored(); return Promise.resolve();
+          }
+          if (executedSeqs[msg.seq]) return Promise.resolve(); /* 重连重放的已执行指令，静默去重 */
+          if (msg.exp <= Math.floor(Date.now() / 1000)) { bumpIgnored(); return Promise.resolve(); }
+          if (msg.seq <= lastSeq) { bumpIgnored(); return Promise.resolve(); }
+          if (remoteKeyFailed || !remoteKey) { bumpIgnored(); return Promise.resolve(); }
+          var signed = msg.seq + '.' + msg.exp + '.' + msg.payload;
+          var data = new TextEncoder().encode(signed);
+          var sigBytes;
+          try { sigBytes = b64ToBytes(msg.sig); } catch (e) { bumpIgnored(); return Promise.resolve(); }
+          return crypto.subtle.verify({ name: 'Ed25519' }, remoteKey, sigBytes, data).then(function (ok) {
+            if (!ok) { bumpIgnored(); return; }
+            var cmd;
+            try { cmd = JSON.parse(b64urlToText(msg.payload)); } catch (e) { bumpIgnored(); return; }
+            lastSeq = msg.seq;
+            executedSeqs[msg.seq] = true;
+            lastValidAt = Date.now();
+            deadmanFired = false;
+            if (remoteOn) setRemoteState('已连接，等待指令');
+            executeCmd(cmd);
+          }).catch(function () { bumpIgnored(); });
+        }
+        function handleNtfyLine(line) {
+          var evt;
+          try { evt = JSON.parse(line); } catch (e) { return; }
+          if (!evt || evt.event !== 'message' || typeof evt.message !== 'string') return;
+          var raw = evt.message;
+          cmdChain = cmdChain.then(function () { return handleCommand(raw); });
+        }
+        function scheduleReconnect() {
+          if (!remoteOn) return;
+          setRemoteState('中继连接断开，3 秒后重连…');
+          setTimeout(function () { if (remoteOn) remoteLoop(); }, 3000);
+        }
+        function remoteLoop() {
+          if (!remoteOn) return;
+          setRemoteState('连接中…');
+          var ctl = new AbortController();
+          remoteAbort = ctl;
+          fetch(REMOTE_NODE + '/' + REMOTE_TOPIC + '/json?since=' + remoteSince, {
+            signal: ctl.signal, cache: 'no-store'
+          }).then(function (res) {
+            if (!res.ok || !res.body) throw new Error('HTTP ' + res.status);
+            setRemoteState(remoteKeyFailed ? '已连接，但当前浏览器不支持 Ed25519 验签，指令不会被执行。' : '已连接，等待指令');
+            var reader = res.body.getReader();
+            var decoder = new TextDecoder();
+            var buf = '';
+            function pump() {
+              return reader.read().then(function (r) {
+                if (r.done) return;
+                buf += decoder.decode(r.value, { stream: true });
+                var idx;
+                while ((idx = buf.indexOf('\n')) >= 0) {
+                  var line = buf.slice(0, idx).trim();
+                  buf = buf.slice(idx + 1);
+                  if (line) handleNtfyLine(line);
+                }
+                return pump();
+              });
+            }
+            return pump();
+          }).then(function () { scheduleReconnect(); })
+            .catch(function () { if (remoteOn) scheduleReconnect(); });
+        }
+        /* 死手开关：远程开启期间连续 90 秒无有效指令 → 三通道归零（保持订阅） */
+        function deadmanCheck() {
+          if (!remoteOn || deadmanFired || !lastValidAt) return;
+          if (Date.now() - lastValidAt > 90000) {
+            deadmanFired = true;
+            zeroAllChannels();
+            setRemoteState('90 秒无指令，已自动归零（仍保持订阅，等下一条指令）');
+          }
+        }
+        function setRemote(on) {
+          remoteOn = on;
+          remoteSwitch.setAttribute('aria-checked', on ? 'true' : 'false');
+          if (on) {
+            ensureRemoteKey();
+            remoteSince = Math.floor(Date.now() / 1000);
+            lastValidAt = Date.now();
+            deadmanFired = false;
+            if (!deadmanTimer) deadmanTimer = setInterval(deadmanCheck, 5000);
+            remoteLoop();
+          } else {
+            if (remoteAbort) { try { remoteAbort.abort(); } catch (e) {} remoteAbort = null; }
+            if (deadmanTimer) { clearInterval(deadmanTimer); deadmanTimer = null; }
+            setRemoteState('未开启');
+          }
+        }
+        function disableRemote() { if (remoteOn) setRemote(false); }
+        remoteSwitch.addEventListener('click', function () { setRemote(!remoteOn); });
 
         /* ===== 环境检查 ===== */
         if (!('bluetooth' in navigator)) {
