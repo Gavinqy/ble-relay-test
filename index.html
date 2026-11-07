@@ -1,8 +1,8 @@
 <!doctype html>
 <html lang="zh-CN">
   <head>
-    <meta charset="utf-8" />
-    <meta name="robots" content="noindex, nofollow" />
+    <meta name="robots" content="noindex, nofollow">
+<meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="color-scheme" content="light dark" />
     <link rel="icon" href="data:," />
@@ -27,6 +27,11 @@
         --danger: #a02c4e;
         --danger-bg: #f9e7ee;
         --locked-bg: #efedf4;
+        --elec: #7c5a10;
+        --elec-deep: #6b4d0a;
+        --elec-bg: #fdf6e0;
+        --elec-soft: #f3e5b8;
+        --elec-line: #d9c27a;
         --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
       }
       @media (prefers-color-scheme: dark) {
@@ -49,6 +54,11 @@
           --danger: #ef8fab;
           --danger-bg: #42222f;
           --locked-bg: #262340;
+          --elec: #e3b96a;
+          --elec-deep: #f0cd82;
+          --elec-bg: #332d1a;
+          --elec-soft: #4a3f1e;
+          --elec-line: #6b5c2a;
         }
       }
       * { box-sizing: border-box; }
@@ -139,6 +149,27 @@
         border-radius: 999px; padding: 1px 8px;
       }
       .locked-desc { font-size: 12.5px; color: var(--ink-soft); margin: 4px 0 0; }
+      /* 电流通道：与另两路视觉区分——独立底色、边框与滑杆色，上限 40 */
+      .chan-electric {
+        background: var(--elec-bg);
+        border: 1px solid var(--elec-line);
+        border-radius: 8px;
+        padding: 10px 12px 12px;
+        margin-top: 10px;
+        border-bottom: 1px solid var(--elec-line);
+      }
+      .chan-electric .chan-val { color: var(--elec-deep); }
+      .elec-tag {
+        font-size: 11.5px; font-weight: 700; color: var(--elec-deep);
+        background: var(--surface); border: 1px solid var(--elec-line);
+        border-radius: 999px; padding: 1px 8px;
+      }
+      .chan-electric input[type="range"] { background: var(--elec-soft); }
+      .chan-electric input[type="range"]::-webkit-slider-thumb { background: var(--elec); }
+      .chan-electric input[type="range"]::-moz-range-thumb { background: var(--elec); }
+      .chan-electric .quick button.active { background: var(--elec-soft); border-color: var(--elec); color: var(--elec-deep); }
+      .elec-hint { font-size: 12px; color: var(--ink-soft); margin: 8px 0 0; line-height: 1.5; }
+      .elec-hint strong { color: var(--elec-deep); }
       /* 状态区 */
       .kv { margin-bottom: 10px; }
       .kv:last-child { margin-bottom: 0; }
@@ -168,8 +199,8 @@
   </head>
   <body>
     <div class="wrap">
-      <h1>中继 · 本地测试</h1>
-      <p class="sub">在安卓 Chrome 里打开，点「连接」选你的啵啵贝（蓝牙名 SOSEXY），就能测吮吸和震动两档。</p>
+      <h1>中继 · 本地测试 · 本地测试</h1>
+      <p class="sub">在安卓 Chrome 里打开，点「连接」选你的设备（蓝牙名 SOSEXY），就能测吮吸、震动与电流三档（电流单独封顶 40）。</p>
 
       <div id="supportBox" role="alert"></div>
       <div id="errBox" role="alert"></div>
@@ -182,18 +213,18 @@
           <span id="devName"></span>
         </div>
         <div class="btn-row">
-          <button type="button" class="btn-primary" id="btnConnect">连接啵啵贝</button>
+          <button type="button" class="btn-primary" id="btnConnect">连接设备</button>
           <button type="button" id="btnDisconnect" disabled>断开连接</button>
         </div>
       </section>
 
       <section aria-label="停止">
         <button type="button" class="btn-stop" id="btnStopAll">■ 全部停止</button>
-        <p class="stop-note">点下立刻三通道全发 0（吮吸、震动、电流），并把滑杆归零。电流通道平时锁定不开，只有全停时会发 0 帧确保关停。</p>
+        <p class="stop-note">点下立刻三通道全发 0（吮吸、震动、电流），并把三根滑杆全部归零——电流照样包含在内，一键生效。</p>
       </section>
 
       <section aria-label="档位测试">
-        <h2>档位测试（0–100）</h2>
+        <h2>档位测试（吮吸 / 震动 0–100 · 电流 0–40）</h2>
 
         <div class="chan" id="chanSuction">
           <div class="chan-head">
@@ -233,12 +264,25 @@
           </div>
         </div>
 
-        <div class="chan locked" aria-label="电流通道（未开放）">
+        <div class="chan chan-electric" id="chanElectric">
           <div class="chan-head">
             <span class="chan-name">电流</span>
-            <span class="lock-tag">电流未开放</span>
+            <span class="chan-val" id="valElectric">0</span>
+            <span class="chan-unit">/ 40</span>
+            <span class="elec-tag">上限 40</span>
           </div>
-          <p class="locked-desc">本页不提供电流的档位控件，不会发送任何非零电流帧；只有「全部停止」会发一次电流 0 帧关停。</p>
+          <div class="chan-controls">
+            <input type="range" id="rngElectric" min="0" max="40" step="1" value="0" disabled aria-label="电流强度（上限 40）" />
+            <button type="button" class="btn-mini" id="stopElectric" disabled>停</button>
+          </div>
+          <div class="quick" data-quick="electric">
+            <button type="button" data-v="0" disabled>0</button>
+            <button type="button" data-v="10" disabled>10</button>
+            <button type="button" data-v="20" disabled>20</button>
+            <button type="button" data-v="30" disabled>30</button>
+            <button type="button" data-v="40" disabled>40</button>
+          </div>
+          <p class="elec-hint"><strong>从低档开始试：</strong>先拉到 5–10 感受一下，再一点一点往上加；觉得不舒服立刻点上方「全部停止」。本通道单独封顶 40，滑杆拉满也不会超过 40。</p>
         </div>
       </section>
 
@@ -262,7 +306,7 @@
         <h2>就三步</h2>
         <ol class="steps">
           <li>打开这一页（就是现在）。</li>
-          <li>点「连接啵啵贝」，在弹出的列表里点一下你的啵啵贝。</li>
+          <li>点「连接设备」，在弹出的列表里点一下你的设备。</li>
           <li>拖滑杆测档位；不用时点「全部停止」再断开。</li>
         </ol>
         <p class="foot">连接期间页面会尽量保持屏幕常亮；设备约 60 秒没收到指令会自动断连，所以连着时别切走太久。</p>
@@ -279,13 +323,20 @@
         var NOTIFY_UUID  = '0000ee02-0000-1000-8000-00805f9b34fb';
         /* 握手帧：01 01 00 01 00 c8 11 01 */
         var HANDSHAKE = [0x01, 0x01, 0x00, 0x01, 0x00, 0xc8, 0x11, 0x01];
-        /* 通道主/副马达码：吮吸 07/08、震动 01/02 开放测试；
-           电流 03/04 仅供「全部停止」发 0 帧，无任何非零发送路径 */
+        /* 通道主/副马达码：吮吸 07/08、震动 01/02、电流 03/04，
+           帧格式与另两通道完全一致；电流单独封顶 ELEC_MAX */
+        var ELEC_MAX = 40;
         var MODES = {
           suction: { main: 0x07, pair: 0x08 },
           vibrate: { main: 0x01, pair: 0x02 },
-          elecStop: { main: 0x03, pair: 0x04 }
+          electric: { main: 0x03, pair: 0x04 }
         };
+        var CHAN_LABEL = { suction: '吮吸', vibrate: '震动', electric: '电流' };
+        /* 每通道强度上限：电流硬编码 40，任何路径都不得超过 */
+        function chanMax(ch) { return ch === 'electric' ? ELEC_MAX : 100; }
+        function clampChan(ch, v) {
+          return Math.max(0, Math.min(chanMax(ch), Math.round(v) || 0));
+        }
 
         /* 控制帧 12 字节：01 01 00 02 00 [MODE1] 11 [强度] 00 [MODE2] 11 01 */
         function buildFrame(mode1, strength, mode2) {
@@ -308,17 +359,17 @@
         var btnStopAll = $('btnStopAll');
         var lastTx = $('lastTx'), lastRx = $('lastRx'), keepAliveEl = $('keepAlive');
         var errBox = $('errBox'), supportBox = $('supportBox');
-        var rng = { suction: $('rngSuction'), vibrate: $('rngVibrate') };
-        var val = { suction: $('valSuction'), vibrate: $('valVibrate') };
-        var stopBtn = { suction: $('stopSuction'), vibrate: $('stopVibrate') };
+        var rng = { suction: $('rngSuction'), vibrate: $('rngVibrate'), electric: $('rngElectric') };
+        var val = { suction: $('valSuction'), vibrate: $('valVibrate'), electric: $('valElectric') };
+        var stopBtn = { suction: $('stopSuction'), vibrate: $('stopVibrate'), electric: $('stopElectric') };
 
         /* ===== 状态 ===== */
         var device = null, server = null, writeChar = null, notifyChar = null;
         var connected = false, connecting = false;
-        var state = { suction: 0, vibrate: 0 };
+        var state = { suction: 0, vibrate: 0, electric: 0 };
         var keepTimer = null, wakeLock = null;
         var writeChain = Promise.resolve();
-        var sendTimers = { suction: null, vibrate: null };
+        var sendTimers = { suction: null, vibrate: null, electric: null };
 
         function showError(msg) {
           if (!msg) { errBox.classList.remove('show'); errBox.textContent = ''; return; }
@@ -331,7 +382,7 @@
           devNameEl.textContent = devName || '';
         }
         function setControlsEnabled(en) {
-          ['suction', 'vibrate'].forEach(function (ch) {
+          ['suction', 'vibrate', 'electric'].forEach(function (ch) {
             rng[ch].disabled = !en;
             stopBtn[ch].disabled = !en;
           });
@@ -373,22 +424,26 @@
           return writeChain;
         }
 
-        /* 设置某通道：先发主码帧（MODE2=0），再发副码帧（MODE2=0），同强度 */
+        /* 设置某通道：先发主码帧（MODE2=0），再发副码帧（MODE2=0），同强度。
+           发送前按通道上限再夹一次：电流在此处也绝不可能超过 40。 */
         function sendChannel(ch, strength) {
           var m = MODES[ch];
-          queueWrite(buildFrame(m.main, strength, 0x00), ch === 'suction' ? '吮吸' : '震动');
-          queueWrite(buildFrame(m.pair, strength, 0x00), ch === 'suction' ? '吮吸·配对' : '震动·配对');
+          var v = clampChan(ch, strength);
+          var label = CHAN_LABEL[ch] || ch;
+          queueWrite(buildFrame(m.main, v, 0x00), label);
+          queueWrite(buildFrame(m.pair, v, 0x00), label + '·配对');
         }
         function sendCurrentState(label) {
           sendChannel('suction', state.suction);
           sendChannel('vibrate', state.vibrate);
+          sendChannel('electric', state.electric);
           if (label) {
             keepAliveEl.textContent = label;
             keepAliveEl.classList.remove('empty');
           }
         }
         function setChannel(ch, v, immediate) {
-          v = Math.max(0, Math.min(100, Math.round(v) || 0));
+          v = clampChan(ch, v);
           state[ch] = v;
           syncSlider(ch);
           if (!connected) return;
@@ -441,8 +496,8 @@
 
         /* ===== 连接 / 断开 ===== */
         function resetUIState() {
-          state.suction = 0; state.vibrate = 0;
-          syncSlider('suction'); syncSlider('vibrate');
+          state.suction = 0; state.vibrate = 0; state.electric = 0;
+          syncSlider('suction'); syncSlider('vibrate'); syncSlider('electric');
           setControlsEnabled(false);
         }
         function onDisconnected() {
@@ -505,7 +560,7 @@
             btnConnect.disabled = false;
             setConnUI('', '未连接', '');
             if (e && e.name === 'NotFoundError') {
-              showError('没有选到设备：请确认啵啵贝已开机、蓝牙已开，再点「连接」重选一次。');
+              showError('没有选到设备：请确认设备已开机、蓝牙已开，再点「连接」重选一次。');
             } else {
               showError('连接失败：' + (e && e.message ? e.message : e));
             }
@@ -521,22 +576,17 @@
           if (!device) onDisconnected();
         }
 
-        /* 电流关停：只发强度 0 的主/副码帧，本页唯一的电流发送路径 */
-        function sendElecStop() {
-          var m = MODES.elecStop;
-          queueWrite(buildFrame(m.main, 0, 0x00), '电流·关停');
-          queueWrite(buildFrame(m.pair, 0, 0x00), '电流·关停配对');
-        }
-        /* 全部停止：三通道全发 0 并归零 */
+        /* 全部停止：三通道全发 0 并归零，电流照样包含在内，一键生效 */
         function stopAll(zeroUI) {
-          state.suction = 0; state.vibrate = 0;
-          syncSlider('suction'); syncSlider('vibrate');
+          state.suction = 0; state.vibrate = 0; state.electric = 0;
+          syncSlider('suction'); syncSlider('vibrate'); syncSlider('electric');
           if (connected) {
-            if (sendTimers.suction) { clearTimeout(sendTimers.suction); sendTimers.suction = null; }
-            if (sendTimers.vibrate) { clearTimeout(sendTimers.vibrate); sendTimers.vibrate = null; }
+            ['suction', 'vibrate', 'electric'].forEach(function (ch) {
+              if (sendTimers[ch]) { clearTimeout(sendTimers[ch]); sendTimers[ch] = null; }
+            });
             sendChannel('suction', 0);
             sendChannel('vibrate', 0);
-            sendElecStop();
+            sendChannel('electric', 0);
           }
         }
 
@@ -544,7 +594,7 @@
         btnConnect.addEventListener('click', connect);
         btnDisconnect.addEventListener('click', disconnect);
         btnStopAll.addEventListener('click', function () { stopAll(true); });
-        ['suction', 'vibrate'].forEach(function (ch) {
+        ['suction', 'vibrate', 'electric'].forEach(function (ch) {
           rng[ch].addEventListener('input', function () { setChannel(ch, parseInt(rng[ch].value, 10), false); });
           rng[ch].addEventListener('change', function () { setChannel(ch, parseInt(rng[ch].value, 10), true); });
           stopBtn[ch].addEventListener('click', function () { setChannel(ch, 0, true); });
@@ -568,7 +618,7 @@
           supportBox.classList.add('show');
           btnConnect.disabled = true;
         }
-        syncSlider('suction'); syncSlider('vibrate');
+        syncSlider('suction'); syncSlider('vibrate'); syncSlider('electric');
         setControlsEnabled(false);
       })();
     </script>
