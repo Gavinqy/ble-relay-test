@@ -1,0 +1,1 @@
+{"versionCode":3,"versionName":"1.2","apkUrl":"https://gavinqy.github.io/ble-relay-test/relay/relay-bridge.apk","notes":"修复安卓 11 及更低版本扫不到设备的问题（补上定位权限，蓝牙扫描需要它）；设置里新增「检查更新」，以后新版在 App 里就能下载安装。"}
