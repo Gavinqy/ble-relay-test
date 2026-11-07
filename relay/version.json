@@ -1,1 +1,1 @@
-{"versionCode":3,"versionName":"1.2","apkUrl":"https://gavinqy.github.io/ble-relay-test/relay/relay-bridge.apk","notes":"修复安卓 11 及更低版本扫不到设备的问题（补上定位权限，蓝牙扫描需要它）；设置里新增「检查更新」，以后新版在 App 里就能下载安装。"}
+{"versionCode":4,"versionName":"1.3","apkUrl":"https://gavinqy.github.io/ble-relay-test/relay/relay-bridge.apk","notes":"新增设备电量显示（设备提供时）；连接意外断开会自动重连，不用再切回来看着；你手动拉滑杆后，当前档位会发给 Dorian（设置里可关）。"}
