@@ -1,0 +1,576 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="icon" href="data:," />
+    <title>中继 · 本地测试</title>
+    <style>
+      :root {
+        --bg: #f7f6fb;
+        --bg-grad: #efeef6;
+        --surface: #ffffff;
+        --surface-2: #f1eff8;
+        --ink: #2e2a4a;
+        --ink-soft: #5d5878;
+        --ink-faint: #8b86a6;
+        --line: #e0dcee;
+        --grape: #6a4a9e;
+        --grape-deep: #54387f;
+        --grape-soft: #ece5f7;
+        --ok: #3d7d5c;
+        --ok-bg: #e6f2eb;
+        --warn: #54387f;
+        --warn-bg: #ede9f7;
+        --danger: #a02c4e;
+        --danger-bg: #f9e7ee;
+        --locked-bg: #efedf4;
+        --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #1d1b2b;
+          --bg-grad: #232038;
+          --surface: #282540;
+          --surface-2: #2f2b4a;
+          --ink: #eceaf6;
+          --ink-soft: #b9b4d4;
+          --ink-faint: #8f89ad;
+          --line: #3d3860;
+          --grape: #b394e3;
+          --grape-deep: #cdb2f2;
+          --grape-soft: #38305a;
+          --ok: #7fc79e;
+          --ok-bg: #22392e;
+          --warn: #e3b96a;
+          --warn-bg: #3d331f;
+          --danger: #ef8fab;
+          --danger-bg: #42222f;
+          --locked-bg: #262340;
+        }
+      }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; padding: 0; }
+      body {
+        font-family: -apple-system, "PingFang SC", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+        font-size: 14px;
+        line-height: 1.55;
+        color: var(--ink);
+        background: linear-gradient(180deg, var(--bg) 0%, var(--bg-grad) 100%);
+        min-height: 100vh;
+        -webkit-text-size-adjust: 100%;
+      }
+      .wrap { max-width: 560px; margin: 0 auto; padding: 16px 16px 40px; }
+      h1 { font-size: 17px; font-weight: 700; margin: 2px 0 2px; letter-spacing: .01em; }
+      .sub { font-size: 12.5px; color: var(--ink-soft); margin: 0 0 14px; }
+      section {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 14px;
+        margin-bottom: 12px;
+      }
+      section h2 {
+        font-size: 12px; font-weight: 700; color: var(--ink-faint);
+        letter-spacing: .12em; margin: 0 0 10px;
+      }
+      /* 状态行 */
+      .status-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+      .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--ink-faint); flex: none; }
+      .dot.on { background: var(--ok); box-shadow: 0 0 0 3px var(--ok-bg); }
+      .dot.busy { background: var(--warn); box-shadow: 0 0 0 3px var(--warn-bg); }
+      #connText { font-size: 14px; font-weight: 600; }
+      #devName { font-size: 12.5px; color: var(--ink-soft); }
+      .btn-row { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+      button {
+        font: inherit; font-size: 13.5px; cursor: pointer;
+        border-radius: 8px; border: 1px solid var(--line);
+        background: var(--surface-2); color: var(--ink);
+        padding: 9px 16px; min-height: 42px;
+      }
+      button:active { transform: translateY(1px); }
+      button:disabled { opacity: .45; cursor: not-allowed; transform: none; }
+      .btn-primary { background: var(--grape); border-color: var(--grape); color: #fff; font-weight: 600; flex: 1; }
+      @media (prefers-color-scheme: dark) { .btn-primary { color: #1d1b2b; } }
+      .btn-primary:disabled { background: var(--surface-2); border-color: var(--line); color: var(--ink); }
+      /* 全部停止 */
+      .btn-stop {
+        width: 100%; min-height: 58px; font-size: 17px; font-weight: 700;
+        background: var(--danger); border-color: var(--danger); color: #fff;
+        border-radius: 10px; letter-spacing: .06em;
+      }
+      @media (prefers-color-scheme: dark) { .btn-stop { color: #fff; } }
+      .stop-note { font-size: 12px; color: var(--ink-soft); margin: 8px 0 0; }
+      /* 通道 */
+      .chan { padding: 10px 0 12px; border-bottom: 1px solid var(--line); }
+      .chan:last-child { border-bottom: none; padding-bottom: 2px; }
+      .chan-head { display: flex; align-items: baseline; gap: 8px; margin-bottom: 6px; }
+      .chan-name { font-size: 14.5px; font-weight: 600; }
+      .chan-val { font-family: var(--mono); font-size: 14px; color: var(--grape-deep); font-weight: 700; min-width: 3ch; }
+      .chan-unit { font-size: 12px; color: var(--ink-faint); }
+      .chan-controls { display: flex; align-items: center; gap: 10px; }
+      input[type="range"] {
+        flex: 1; -webkit-appearance: none; appearance: none;
+        height: 6px; border-radius: 3px; background: var(--grape-soft); outline: none; margin: 0;
+      }
+      input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none; appearance: none;
+        width: 26px; height: 26px; border-radius: 50%;
+        background: var(--grape); border: 3px solid var(--surface);
+        box-shadow: 0 1px 4px rgba(46,42,74,.35); cursor: pointer;
+      }
+      input[type="range"]::-moz-range-thumb {
+        width: 20px; height: 20px; border-radius: 50%;
+        background: var(--grape); border: 3px solid var(--surface);
+        box-shadow: 0 1px 4px rgba(46,42,74,.35); cursor: pointer;
+      }
+      input[type="range"]:disabled { opacity: .4; }
+      input[type="range"]:disabled::-webkit-slider-thumb { background: var(--ink-faint); cursor: not-allowed; }
+      .btn-mini { min-height: 38px; padding: 6px 12px; font-size: 12.5px; flex: none; }
+      .quick { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+      .quick button { min-height: 32px; padding: 3px 10px; font-size: 12px; border-radius: 6px; }
+      .quick button.active { background: var(--grape-soft); border-color: var(--grape); color: var(--grape-deep); font-weight: 700; }
+      .chan.locked { background: var(--locked-bg); border-radius: 8px; padding: 10px 12px 12px; margin-top: 10px; border-bottom: none; }
+      .lock-tag {
+        font-size: 11.5px; font-weight: 700; color: var(--ink-soft);
+        background: var(--surface); border: 1px solid var(--line);
+        border-radius: 999px; padding: 1px 8px;
+      }
+      .locked-desc { font-size: 12.5px; color: var(--ink-soft); margin: 4px 0 0; }
+      /* 状态区 */
+      .kv { margin-bottom: 10px; }
+      .kv:last-child { margin-bottom: 0; }
+      .kv-label { font-size: 12px; color: var(--ink-faint); margin-bottom: 3px; }
+      .kv-val {
+        font-family: var(--mono); font-size: 12.5px; word-break: break-all;
+        background: var(--surface-2); border: 1px solid var(--line);
+        border-radius: 6px; padding: 7px 9px; min-height: 34px;
+      }
+      .kv-val.empty { color: var(--ink-faint); font-family: inherit; }
+      #errBox {
+        display: none; font-size: 13px; color: var(--danger);
+        background: var(--danger-bg); border: 1px solid var(--danger);
+        border-radius: 8px; padding: 10px 12px; margin-bottom: 12px;
+      }
+      #errBox.show { display: block; }
+      #supportBox {
+        display: none; font-size: 13px; color: var(--warn);
+        background: var(--warn-bg); border: 1px solid var(--warn);
+        border-radius: 8px; padding: 10px 12px; margin-bottom: 12px;
+      }
+      #supportBox.show { display: block; }
+      .steps { font-size: 13px; color: var(--ink-soft); margin: 0; padding-left: 20px; }
+      .steps li { margin-bottom: 3px; }
+      .foot { font-size: 12px; color: var(--ink-faint); margin-top: 4px; }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <h1>中继 · 本地测试</h1>
+      <p class="sub">在安卓 Chrome 里打开，点「连接」选你的啵啵贝（蓝牙名 SOSEXY），就能测吮吸和震动两档。</p>
+
+      <div id="supportBox" role="alert"></div>
+      <div id="errBox" role="alert"></div>
+
+      <section aria-label="连接">
+        <h2>连接</h2>
+        <div class="status-row">
+          <span class="dot" id="connDot"></span>
+          <span id="connText">未连接</span>
+          <span id="devName"></span>
+        </div>
+        <div class="btn-row">
+          <button type="button" class="btn-primary" id="btnConnect">连接啵啵贝</button>
+          <button type="button" id="btnDisconnect" disabled>断开连接</button>
+        </div>
+      </section>
+
+      <section aria-label="停止">
+        <button type="button" class="btn-stop" id="btnStopAll">■ 全部停止</button>
+        <p class="stop-note">点下立刻三通道全发 0（吮吸、震动、电流），并把滑杆归零。电流通道平时锁定不开，只有全停时会发 0 帧确保关停。</p>
+      </section>
+
+      <section aria-label="档位测试">
+        <h2>档位测试（0–100）</h2>
+
+        <div class="chan" id="chanSuction">
+          <div class="chan-head">
+            <span class="chan-name">吮吸</span>
+            <span class="chan-val" id="valSuction">0</span>
+            <span class="chan-unit">/ 100</span>
+          </div>
+          <div class="chan-controls">
+            <input type="range" id="rngSuction" min="0" max="100" step="1" value="0" disabled aria-label="吮吸强度" />
+            <button type="button" class="btn-mini" id="stopSuction" disabled>停</button>
+          </div>
+          <div class="quick" data-quick="suction">
+            <button type="button" data-v="0" disabled>0</button>
+            <button type="button" data-v="25" disabled>25</button>
+            <button type="button" data-v="50" disabled>50</button>
+            <button type="button" data-v="75" disabled>75</button>
+            <button type="button" data-v="100" disabled>100</button>
+          </div>
+        </div>
+
+        <div class="chan" id="chanVibrate">
+          <div class="chan-head">
+            <span class="chan-name">震动</span>
+            <span class="chan-val" id="valVibrate">0</span>
+            <span class="chan-unit">/ 100</span>
+          </div>
+          <div class="chan-controls">
+            <input type="range" id="rngVibrate" min="0" max="100" step="1" value="0" disabled aria-label="震动强度" />
+            <button type="button" class="btn-mini" id="stopVibrate" disabled>停</button>
+          </div>
+          <div class="quick" data-quick="vibrate">
+            <button type="button" data-v="0" disabled>0</button>
+            <button type="button" data-v="25" disabled>25</button>
+            <button type="button" data-v="50" disabled>50</button>
+            <button type="button" data-v="75" disabled>75</button>
+            <button type="button" data-v="100" disabled>100</button>
+          </div>
+        </div>
+
+        <div class="chan locked" aria-label="电流通道（未开放）">
+          <div class="chan-head">
+            <span class="chan-name">电流</span>
+            <span class="lock-tag">电流未开放</span>
+          </div>
+          <p class="locked-desc">本页不提供电流的档位控件，不会发送任何非零电流帧；只有「全部停止」会发一次电流 0 帧关停。</p>
+        </div>
+      </section>
+
+      <section aria-label="状态">
+        <h2>状态</h2>
+        <div class="kv">
+          <div class="kv-label">最近发送的帧</div>
+          <div class="kv-val empty" id="lastTx">尚未发送</div>
+        </div>
+        <div class="kv">
+          <div class="kv-label">设备回应（通知）</div>
+          <div class="kv-val empty" id="lastRx">尚未收到</div>
+        </div>
+        <div class="kv">
+          <div class="kv-label">保活</div>
+          <div class="kv-val empty" id="keepAlive">未连接时不保活；连接后每 10 秒重发一次当前档位防自动断连。</div>
+        </div>
+      </section>
+
+      <section aria-label="使用步骤">
+        <h2>就三步</h2>
+        <ol class="steps">
+          <li>打开这一页（就是现在）。</li>
+          <li>点「连接啵啵贝」，在弹出的列表里点一下你的啵啵贝。</li>
+          <li>拖滑杆测档位；不用时点「全部停止」再断开。</li>
+        </ol>
+        <p class="foot">连接期间页面会尽量保持屏幕常亮；设备约 60 秒没收到指令会自动断连，所以连着时别切走太久。</p>
+      </section>
+    </div>
+
+    <script>
+      (function () {
+        'use strict';
+
+        /* ===== 协议常量（社区公开逆向文档，照抄不改） ===== */
+        var SERVICE_UUID = '0000ee01-0000-1000-8000-00805f9b34fb';
+        var WRITE_UUID   = '0000ee03-0000-1000-8000-00805f9b34fb';
+        var NOTIFY_UUID  = '0000ee02-0000-1000-8000-00805f9b34fb';
+        /* 握手帧：01 01 00 01 00 c8 11 01 */
+        var HANDSHAKE = [0x01, 0x01, 0x00, 0x01, 0x00, 0xc8, 0x11, 0x01];
+        /* 通道主/副马达码：吮吸 07/08、震动 01/02 开放测试；
+           电流 03/04 仅供「全部停止」发 0 帧，无任何非零发送路径 */
+        var MODES = {
+          suction: { main: 0x07, pair: 0x08 },
+          vibrate: { main: 0x01, pair: 0x02 },
+          elecStop: { main: 0x03, pair: 0x04 }
+        };
+
+        /* 控制帧 12 字节：01 01 00 02 00 [MODE1] 11 [强度] 00 [MODE2] 11 01 */
+        function buildFrame(mode1, strength, mode2) {
+          var v = Math.max(0, Math.min(100, Math.round(strength) || 0));
+          return new Uint8Array([0x01, 0x01, 0x00, 0x02, 0x00, mode1, 0x11, v, 0x00, mode2, 0x11, 0x01]);
+        }
+        function toHex(bytes) {
+          var out = [];
+          for (var i = 0; i < bytes.length; i++) {
+            var h = bytes[i].toString(16).toUpperCase();
+            out.push(h.length < 2 ? '0' + h : h);
+          }
+          return out.join(' ');
+        }
+
+        /* ===== DOM ===== */
+        function $(id) { return document.getElementById(id); }
+        var connDot = $('connDot'), connText = $('connText'), devNameEl = $('devName');
+        var btnConnect = $('btnConnect'), btnDisconnect = $('btnDisconnect');
+        var btnStopAll = $('btnStopAll');
+        var lastTx = $('lastTx'), lastRx = $('lastRx'), keepAliveEl = $('keepAlive');
+        var errBox = $('errBox'), supportBox = $('supportBox');
+        var rng = { suction: $('rngSuction'), vibrate: $('rngVibrate') };
+        var val = { suction: $('valSuction'), vibrate: $('valVibrate') };
+        var stopBtn = { suction: $('stopSuction'), vibrate: $('stopVibrate') };
+
+        /* ===== 状态 ===== */
+        var device = null, server = null, writeChar = null, notifyChar = null;
+        var connected = false, connecting = false;
+        var state = { suction: 0, vibrate: 0 };
+        var keepTimer = null, wakeLock = null;
+        var writeChain = Promise.resolve();
+        var sendTimers = { suction: null, vibrate: null };
+
+        function showError(msg) {
+          if (!msg) { errBox.classList.remove('show'); errBox.textContent = ''; return; }
+          errBox.textContent = msg;
+          errBox.classList.add('show');
+        }
+        function setConnUI(mode, text, devName) {
+          connDot.className = 'dot' + (mode === 'on' ? ' on' : mode === 'busy' ? ' busy' : '');
+          connText.textContent = text;
+          devNameEl.textContent = devName || '';
+        }
+        function setControlsEnabled(en) {
+          ['suction', 'vibrate'].forEach(function (ch) {
+            rng[ch].disabled = !en;
+            stopBtn[ch].disabled = !en;
+          });
+          var qs = document.querySelectorAll('.quick button');
+          for (var i = 0; i < qs.length; i++) qs[i].disabled = !en;
+          btnDisconnect.disabled = !en;
+          btnConnect.disabled = en || connecting;
+        }
+        function markQuick(ch) {
+          var box = document.querySelector('[data-quick="' + ch + '"]');
+          if (!box) return;
+          var btns = box.querySelectorAll('button');
+          for (var i = 0; i < btns.length; i++) {
+            btns[i].classList.toggle('active', parseInt(btns[i].getAttribute('data-v'), 10) === state[ch]);
+          }
+        }
+        function syncSlider(ch) {
+          rng[ch].value = state[ch];
+          val[ch].textContent = state[ch];
+          markQuick(ch);
+        }
+
+        /* ===== 写队列：串行写，避免 GATT 忙冲突 ===== */
+        function queueWrite(bytes, label) {
+          writeChain = writeChain.then(function () {
+            if (!connected || !writeChar) return;
+            lastTx.textContent = toHex(bytes) + (label ? '  · ' + label : '');
+            lastTx.classList.remove('empty');
+            if (typeof writeChar.writeValueWithResponse === 'function') {
+              return writeChar.writeValueWithResponse(bytes);
+            }
+            if (typeof writeChar.writeValueWithoutResponse === 'function') {
+              return writeChar.writeValueWithoutResponse(bytes);
+            }
+            return writeChar.writeValue(bytes);
+          }).catch(function (e) {
+            showError('发送失败：' + (e && e.message ? e.message : e));
+          });
+          return writeChain;
+        }
+
+        /* 设置某通道：先发主码帧（MODE2=0），再发副码帧（MODE2=0），同强度 */
+        function sendChannel(ch, strength) {
+          var m = MODES[ch];
+          queueWrite(buildFrame(m.main, strength, 0x00), ch === 'suction' ? '吮吸' : '震动');
+          queueWrite(buildFrame(m.pair, strength, 0x00), ch === 'suction' ? '吮吸·配对' : '震动·配对');
+        }
+        function sendCurrentState(label) {
+          sendChannel('suction', state.suction);
+          sendChannel('vibrate', state.vibrate);
+          if (label) {
+            keepAliveEl.textContent = label;
+            keepAliveEl.classList.remove('empty');
+          }
+        }
+        function setChannel(ch, v, immediate) {
+          v = Math.max(0, Math.min(100, Math.round(v) || 0));
+          state[ch] = v;
+          syncSlider(ch);
+          if (!connected) return;
+          if (immediate) {
+            if (sendTimers[ch]) { clearTimeout(sendTimers[ch]); sendTimers[ch] = null; }
+            sendChannel(ch, v);
+          } else {
+            if (sendTimers[ch]) clearTimeout(sendTimers[ch]);
+            sendTimers[ch] = setTimeout(function () { sendTimers[ch] = null; sendChannel(ch, state[ch]); }, 120);
+          }
+        }
+
+        /* ===== 保活：每 10 秒重发当前帧；全 0 时即全停帧 ===== */
+        function startKeepAlive() {
+          stopKeepAlive();
+          keepTimer = setInterval(function () {
+            if (!connected) return;
+            sendCurrentState('保活中：每 10 秒重发一次当前档位（刚重发于 ' + new Date().toLocaleTimeString('zh-CN', { hour12: false }) + '）。');
+          }, 10000);
+          keepAliveEl.textContent = '保活已开启：每 10 秒重发一次当前档位。';
+          keepAliveEl.classList.remove('empty');
+        }
+        function stopKeepAlive() {
+          if (keepTimer) { clearInterval(keepTimer); keepTimer = null; }
+        }
+
+        /* ===== 屏幕常亮 ===== */
+        function requestWakeLock() {
+          if (!('wakeLock' in navigator)) return;
+          navigator.wakeLock.request('screen').then(function (wl) {
+            wakeLock = wl;
+            wl.addEventListener('release', function () { wakeLock = null; });
+          }).catch(function () { /* 不支持或被拒就跳过，不影响连接 */ });
+        }
+        function releaseWakeLock() {
+          if (wakeLock) { try { wakeLock.release(); } catch (e) {} wakeLock = null; }
+        }
+        document.addEventListener('visibilitychange', function () {
+          if (document.visibilityState === 'visible' && connected && !wakeLock) requestWakeLock();
+        });
+
+        /* ===== 通知（设备回应） ===== */
+        function onNotify(event) {
+          var v = event.target.value;
+          var bytes = [];
+          for (var i = 0; i < v.byteLength; i++) bytes.push(v.getUint8(i));
+          lastRx.textContent = toHex(bytes) + '  · ' + new Date().toLocaleTimeString('zh-CN', { hour12: false });
+          lastRx.classList.remove('empty');
+        }
+
+        /* ===== 连接 / 断开 ===== */
+        function resetUIState() {
+          state.suction = 0; state.vibrate = 0;
+          syncSlider('suction'); syncSlider('vibrate');
+          setControlsEnabled(false);
+        }
+        function onDisconnected() {
+          connected = false; connecting = false;
+          stopKeepAlive();
+          releaseWakeLock();
+          if (notifyChar) { try { notifyChar.removeEventListener('characteristicvaluechanged', onNotify); } catch (e) {} }
+          device = null; server = null; writeChar = null; notifyChar = null;
+          resetUIState();
+          setConnUI('', '未连接（已断开）', '');
+          keepAliveEl.textContent = '已断开，保活停止。重新连接后恢复。';
+          btnConnect.disabled = false;
+        }
+
+        function connect() {
+          if (!('bluetooth' in navigator)) {
+            showError('这个浏览器不支持 Web Bluetooth。请在安卓手机上用 Chrome 打开本页再连接。');
+            return;
+          }
+          if (connecting || connected) return;
+          connecting = true;
+          showError('');
+          setConnUI('busy', '正在选择设备…', '');
+          btnConnect.disabled = true;
+
+          navigator.bluetooth.requestDevice({
+            filters: [{ namePrefix: 'SOSEXY' }],
+            optionalServices: [SERVICE_UUID]
+          }).then(function (dev) {
+            device = dev;
+            device.addEventListener('gattserverdisconnected', onDisconnected);
+            setConnUI('busy', '正在连接…', dev.name || 'SOSEXY');
+            return device.gatt.connect();
+          }).then(function (srv) {
+            server = srv;
+            return server.getPrimaryService(SERVICE_UUID);
+          }).then(function (service) {
+            return Promise.all([
+              service.getCharacteristic(WRITE_UUID),
+              service.getCharacteristic(NOTIFY_UUID).catch(function () { return null; })
+            ]);
+          }).then(function (chars) {
+            writeChar = chars[0];
+            notifyChar = chars[1];
+            connected = true; connecting = false;
+            if (notifyChar) {
+              notifyChar.addEventListener('characteristicvaluechanged', onNotify);
+              return notifyChar.startNotifications().catch(function () { /* 订阅失败不阻断控制 */ });
+            }
+          }).then(function () {
+            setConnUI('on', '已连接', device && device.name ? device.name : 'SOSEXY');
+            setControlsEnabled(true);
+            /* 连接成功后先发握手帧 */
+            queueWrite(new Uint8Array(HANDSHAKE), '握手');
+            startKeepAlive();
+            requestWakeLock();
+          }).catch(function (e) {
+            connecting = false;
+            connected = false;
+            btnConnect.disabled = false;
+            setConnUI('', '未连接', '');
+            if (e && e.name === 'NotFoundError') {
+              showError('没有选到设备：请确认啵啵贝已开机、蓝牙已开，再点「连接」重选一次。');
+            } else {
+              showError('连接失败：' + (e && e.message ? e.message : e));
+            }
+            if (device && device.gatt && device.gatt.connected) { try { device.gatt.disconnect(); } catch (err) {} }
+          });
+        }
+
+        function disconnect() {
+          stopAll(false);
+          if (device && device.gatt && device.gatt.connected) {
+            try { device.gatt.disconnect(); } catch (e) {}
+          }
+          if (!device) onDisconnected();
+        }
+
+        /* 电流关停：只发强度 0 的主/副码帧，本页唯一的电流发送路径 */
+        function sendElecStop() {
+          var m = MODES.elecStop;
+          queueWrite(buildFrame(m.main, 0, 0x00), '电流·关停');
+          queueWrite(buildFrame(m.pair, 0, 0x00), '电流·关停配对');
+        }
+        /* 全部停止：三通道全发 0 并归零 */
+        function stopAll(zeroUI) {
+          state.suction = 0; state.vibrate = 0;
+          syncSlider('suction'); syncSlider('vibrate');
+          if (connected) {
+            if (sendTimers.suction) { clearTimeout(sendTimers.suction); sendTimers.suction = null; }
+            if (sendTimers.vibrate) { clearTimeout(sendTimers.vibrate); sendTimers.vibrate = null; }
+            sendChannel('suction', 0);
+            sendChannel('vibrate', 0);
+            sendElecStop();
+          }
+        }
+
+        /* ===== 事件绑定 ===== */
+        btnConnect.addEventListener('click', connect);
+        btnDisconnect.addEventListener('click', disconnect);
+        btnStopAll.addEventListener('click', function () { stopAll(true); });
+        ['suction', 'vibrate'].forEach(function (ch) {
+          rng[ch].addEventListener('input', function () { setChannel(ch, parseInt(rng[ch].value, 10), false); });
+          rng[ch].addEventListener('change', function () { setChannel(ch, parseInt(rng[ch].value, 10), true); });
+          stopBtn[ch].addEventListener('click', function () { setChannel(ch, 0, true); });
+        });
+        var quickBoxes = document.querySelectorAll('.quick');
+        for (var q = 0; q < quickBoxes.length; q++) {
+          (function (box) {
+            var ch = box.getAttribute('data-quick');
+            var btns = box.querySelectorAll('button');
+            for (var i = 0; i < btns.length; i++) {
+              (function (b) {
+                b.addEventListener('click', function () { setChannel(ch, parseInt(b.getAttribute('data-v'), 10), true); });
+              })(btns[i]);
+            }
+          })(quickBoxes[q]);
+        }
+
+        /* ===== 环境检查 ===== */
+        if (!('bluetooth' in navigator)) {
+          supportBox.textContent = '当前浏览器不支持 Web Bluetooth，连接按钮点了也不会有反应。请在安卓手机上用 Chrome 打开这一页（桌面 Chrome 也可以连，但设备要在旁边）。';
+          supportBox.classList.add('show');
+          btnConnect.disabled = true;
+        }
+        syncSlider('suction'); syncSlider('vibrate');
+        setControlsEnabled(false);
+      })();
+    </script>
+  </body>
+</html>
