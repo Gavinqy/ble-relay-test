@@ -199,7 +199,7 @@
   </head>
   <body>
     <div class="wrap">
-      <h1>中继 · 本地测试 · 本地测试</h1>
+      <h1>中继 · 本地测试</h1>
       <p class="sub">在安卓 Chrome 里打开，点「连接」选你的设备（蓝牙名 SOSEXY），就能测吮吸、震动与电流三档（电流单独封顶 40）。</p>
 
       <div id="supportBox" role="alert"></div>
@@ -424,14 +424,15 @@
           return writeChain;
         }
 
-        /* 设置某通道：先发主码帧（MODE2=0），再发副码帧（MODE2=0），同强度。
+        /* 设置某通道：每通道只发一帧，byte5 与 byte9 同帧填该通道的码对（主码/副码），
+           如吮吸 39 = 01 01 00 02 00 07 11 27 00 08 11 01；
+           码对拆成两帧、其中一帧 MODE2=0 时固件会静默丢弃，玩具不动。
            发送前按通道上限再夹一次：电流在此处也绝不可能超过 40。 */
         function sendChannel(ch, strength) {
           var m = MODES[ch];
           var v = clampChan(ch, strength);
           var label = CHAN_LABEL[ch] || ch;
-          queueWrite(buildFrame(m.main, v, 0x00), label);
-          queueWrite(buildFrame(m.pair, v, 0x00), label + '·配对');
+          queueWrite(buildFrame(m.main, v, m.pair), label);
         }
         function sendCurrentState(label) {
           sendChannel('suction', state.suction);
