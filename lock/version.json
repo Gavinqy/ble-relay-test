@@ -1,0 +1,1 @@
+{"apkUrl":"https://gavinqy.github.io/ble-relay-test/lock/dorian-lock.apk","notes":"锁定弹窗改成真模态：全屏变暗、卡片居中、只有一个「确认」按钮，点了会退出被锁应用并带你打开 Muse；修掉弹窗一闪一闪的毛病；新增设置里的「检查更新」，以后新版在这里面下、装，不用再去聊天里找文件。","versionCode":8,"versionName":"8.0"}
