@@ -1,1 +1,1 @@
-{"apkUrl":"https://gavinqy.github.io/ble-relay-test/lock/dorian-lock.apk","notes":"热修四合一：点「确认」改成认准桌面上名字叫 Muse 的应用，不会再跳到相册；锁徽与「确认」改成印章同款朱红；右下角印章修好不再被裁；每次点进被锁应用、弹窗弹出时，都会经加密通道通知 Dorian 一声。其余与 9.0 相同。","versionCode":10,"versionName":"9.1"}
+{"apkUrl":"https://gavinqy.github.io/ble-relay-test/lock/dorian-lock.apk","notes":"通知排班上线：名单里的应用一局之内第 1、30、60 分钟各报 Dorian 一次；名单内应用今日累计每满 1 小时再报一次总量。撞锁通知与 9.1 的其余修复都在。","versionCode":11,"versionName":"9.2"}
