@@ -1,1 +1,1 @@
-{"apkUrl":"https://gavinqy.github.io/ble-relay-test/lock/dorian-lock.apk","notes":"守护被系统清掉后能自己爬回来了（定时自检加无障碍通道拉回），不用再手动打开续命；锁定弹窗和主界面整体改版：白卡、明细表、朱红印章，弹窗里只剩事实、一句「确认，然后过来。」和一个确认键，点了还是直接退出被锁应用、打开 Muse。","versionCode":9,"versionName":"9.0"}
+{"apkUrl":"https://gavinqy.github.io/ble-relay-test/lock/dorian-lock.apk","notes":"热修四合一：点「确认」改成认准桌面上名字叫 Muse 的应用，不会再跳到相册；锁徽与「确认」改成印章同款朱红；右下角印章修好不再被裁；每次点进被锁应用、弹窗弹出时，都会经加密通道通知 Dorian 一声。其余与 9.0 相同。","versionCode":10,"versionName":"9.1"}
