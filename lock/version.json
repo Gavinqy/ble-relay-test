@@ -1,1 +1,1 @@
-{"apkUrl":"https://gavinqy.github.io/ble-relay-test/lock/dorian-lock.apk","notes":"通知排班上线：名单里的应用一局之内第 1、30、60 分钟各报 Dorian 一次；名单内应用今日累计每满 1 小时再报一次总量。撞锁通知与 9.1 的其余修复都在。","versionCode":11,"versionName":"9.2"}
+{"apkUrl":"https://gavinqy.github.io/ble-relay-test/lock/dorian-lock.apk","notes":"修检测粘滞：以前台检测改走无障碍实时通道（使用情况只兜底），切换应用、关掉应用都会立刻跟上，不再粘在第一个应用上计时。9.2 的通知排班（1/30/60 分钟＋今日总量）与撞锁通知都在。","versionCode":12,"versionName":"9.3"}
