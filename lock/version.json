@@ -1,1 +1,1 @@
-{"apkUrl":"https://gavinqy.github.io/ble-relay-test/lock/dorian-lock.apk","notes":"名单同步：你在应用里设的可锁名单和白名单会加密同步给 Dorian，他认名单不再靠猜，你改完名单或打开应用就会同步一次；锁定弹窗右下角的红印章去掉了（图标上的小红锁和「确认」都在）；落锁后的半小时里命令改成一分钟拉一次，Dorian 的解锁一分钟左右就能到，不用再等一刻钟。","versionCode":13,"versionName":"9.4"}
+{"apkUrl": "https://gavinqy.github.io/ble-relay-test/lock/dorian-lock.apk", "notes": "检测链整条重构：无障碍成为唯一前台来源（安静多久都认，不再3分钟判死）；使用情况只负责报警、不再参与计时；新应用要稳稳待满3秒才开始计时，弹窗悬浮窗不算；计时改成逐秒攒——熄屏、切走、检测断档全部冻结，每个应用各记各账、切走保留10分钟只留已攒秒数；面板所有数字同一本账、带数据时刻，时长改中文写法；新增本地判定记录，下次认错应用翻记录就能定罪。总纲：宁可漏记，不可错记。", "versionCode": 14, "versionName": "10.0"}
